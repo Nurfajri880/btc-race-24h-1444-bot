@@ -82,6 +82,12 @@ await runBars({
 
     // Flat: buy the whole cash balance on a D-bps dip from the N-bar high.
     // The reference high is the highest of the N closes before this bar.
+    // Defensive: never buy while a position is already held. The long branch
+    // above normally manages a held position, but if its entry price was never
+    // recorded the position would fall through here; buying on top of it would
+    // break the one-position invariant, so hold instead and wait for the
+    // position to clear (or for the final flatten).
+    if (longQty > 0n) return [];
     if (closes.length < N + 1) return [];
     let refHigh = 0n;
     for (let i = closes.length - N - 1; i < closes.length - 1; i++) {
